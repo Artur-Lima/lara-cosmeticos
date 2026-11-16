@@ -1,0 +1,158 @@
+# Stack de produção (Docker Swarm + Traefik, via Portainer).
+# Todas as variáveis ${...:?} são obrigatórias: defina-as nas variáveis do
+# stack no Portainer. Nenhum segredo fica versionado neste arquivo.
+version: "3.8"
+
+x-app-env: &app-env
+  APP_NAME: "Lara Lima Cosméticos"
+  APP_ENV: production
+  APP_DEBUG: "false"
+  APP_KEY: ${APP_KEY:?defina APP_KEY}
+  APP_URL: https://${APP_DOMAIN:?defina APP_DOMAIN}
+  ASSET_URL: https://${APP_DOMAIN}
+  APP_TIMEZONE: America/Porto_Velho
+  TZ: America/Porto_Velho
+  APP_LOCALE: pt_BR
+  APP_FALLBACK_LOCALE: pt_BR
+  APP_FAKER_LOCALE: pt_BR
+  LOG_CHANNEL: stderr
+  LOG_LEVEL: warning
+  DB_CONNECTION: mysql
+  DB_HOST: db
+  DB_PORT: "3306"
+  DB_DATABASE: lara
+  DB_USERNAME: lara
+  DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD}
+  CACHE_STORE: redis
+  CACHE_PREFIX: lara_cache
+  SESSION_DRIVER: redis
+  SESSION_LIFETIME: "240"
+  SESSION_SECURE_COOKIE: "true"
+  QUEUE_CONNECTION: redis
+  REDIS_CLIENT: phpredis
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  MAIL_MAILER: ${MAIL_MAILER:-smtp}
+  MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+  MAIL_PORT: ${MAIL_PORT:-465}
+  MAIL_USERNAME: ${MAIL_USERNAME:-}
+  MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+  MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-}
+  MAIL_FROM_NAME: "Lara Lima Cosméticos"
+  ASAAS_API_KEY: ${ASAAS_API_KEY:-}
+  ASAAS_ENV: ${ASAAS_ENV:-sandbox}
+  ASAAS_WEBHOOK_TOKEN: ${ASAAS_WEBHOOK_TOKEN:-}
+  WHATSAPP_ENABLED: ${WHATSAPP_ENABLED:-false}
+  WHATSAPP_CONNECTOR_URL: ${WHATSAPP_CONNECTOR_URL:-}
+  WHATSAPP_CONNECTOR_TOKEN: ${WHATSAPP_CONNECTOR_TOKEN:-}
+  WHATSAPP_CALLBACK_TOKEN: ${WHATSAPP_CALLBACK_TOKEN:-}
+
+x-placement: &placement
+  placement:
+    constraints:
+      - node.hostname == ${SWARM_NODE:?defina SWARM_NODE}
+
+services:
+  app:
+    image: ${APP_IMAGE:?defina APP_IMAGE}
+    environment:
+      <<: *app-env
+      RUN_MIGRATIONS: "true"
+    volumes:
+      - storage:/var/www/storage
+    networks: [internal]
+    deploy:
+      <<: *placement
+      replicas: 1
+      resources:
+        limits: { cpus: "1.0", memory: 768M }
+      restart_policy: { condition: any, delay: 10s }
+
+  queue:
+    image: ${APP_IMAGE}
+    environment: *app-env
+    command: php artisan queue:work redis --sleep=1 --tries=3 --timeout=90 --max-time=3600
+    volumes:
+      - storage:/var/www/storage
+    networks: [internal]
+    deploy:
+      <<: *placement
+      replicas: 1
+      resources:
+        limits: { cpus: "0.5", memory: 384M }
+      restart_policy: { condition: any, delay: 10s }
+
+  scheduler:
+    image: ${APP_IMAGE}
+    environment: *app-env
+    command: php artisan schedule:work
+    volumes:
+      - storage:/var/www/storage
+    networks: [internal]
+    deploy:
+      <<: *placement
+      replicas: 1
+      resources:
+        limits: { cpus: "0.25", memory: 256M }
+      restart_policy: { condition: any, delay: 10s }
+
+  web:
+    image: ${WEB_IMAGE:?defina WEB_IMAGE}
+    volumes:
+      - storage:/var/www/storage:ro
+    networks: [internal, traefik_public]
+    deploy:
+      <<: *placement
+      replicas: 1
+      restart_policy: { condition: any, delay: 5s }
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik_public
+        - traefik.http.routers.lara.rule=Host(`${APP_DOMAIN}`) || Host(`www.${APP_DOMAIN}`)
+        - traefik.http.routers.lara.entrypoints=websecure
+        - traefik.http.routers.lara.tls=true
+        - traefik.http.routers.lara.tls.certresolver=letsencrypt
+        - traefik.http.services.lara.loadbalancer.server.port=80
+        - traefik.http.routers.lara-http.rule=Host(`${APP_DOMAIN}`) || Host(`www.${APP_DOMAIN}`)
+        - traefik.http.routers.lara-http.entrypoints=web
+        - traefik.http.routers.lara-http.middlewares=lara-redirect-https
+        - traefik.http.middlewares.lara-redirect-https.redirectscheme.scheme=https
+        - traefik.http.middlewares.lara-redirect-https.redirectscheme.permanent=true
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: lara
+      MYSQL_USER: lara
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?defina DB_ROOT_PASSWORD}
+    command: --default-time-zone=-04:00 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --innodb-buffer-pool-size=256M --max-connections=60
+    volumes:
+      - db_data:/var/lib/mysql
+    networks: [internal]
+    deploy:
+      <<: *placement
+      replicas: 1
+      resources:
+        limits: { cpus: "1.0", memory: 768M }
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy noeviction
+    volumes:
+      - redis_data:/data
+    networks: [internal]
+    deploy:
+      <<: *placement
+      replicas: 1
+
+volumes:
+  db_data:
+  redis_data:
+  storage:
+
+networks:
+  internal:
+    driver: overlay
+  traefik_public:
+    external: true
