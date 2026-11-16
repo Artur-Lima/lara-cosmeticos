@@ -6,7 +6,7 @@ Loja online de perfumaria e cosméticos da Lara Lima Cosméticos (Itapuã do Oes
 
 | Camada | Tecnologia |
 |---|---|
-| Backend | PHP 8.3 · Laravel 12 |
+| Backend | PHP 8.4 · Laravel 12 |
 | Frontend | Blade · Alpine.js · Tailwind CSS 3 (Vite) |
 | Dados | MySQL 8 · Redis (cache, sessão, fila) |
 | Infra | Docker · Docker Swarm + Traefik (Portainer) |
@@ -30,7 +30,7 @@ MySQL do container fica exposto em `localhost:3307` (usuário/senha do `.env`).
 
 ## Rodando sem Docker
 
-Requisitos: PHP 8.3 (ext: pdo_mysql, mbstring, bcmath, gd, intl, zip, redis), Composer 2, Node 20, MySQL 8 e Redis.
+Requisitos: PHP 8.4 (ext: pdo_mysql, mbstring, bcmath, gd, intl, zip, redis), Composer 2, Node 20, MySQL 8 e Redis.
 
 ```bash
 cp .env.example .env
