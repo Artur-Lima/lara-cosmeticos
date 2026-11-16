@@ -21,3 +21,19 @@ Registro curto das decisões técnicas (o quê, por quê, alternativa descartada
 
 - **Decisão:** Blade + Alpine + Tailwind 3, MySQL 8, Redis, Swarm + Traefik. Mantém as views/componentes da farmácia reaproveitáveis e a operação idêntica.
 - **Diferenças intencionais no deploy:** nenhum segredo hardcoded no `docker-compose.prod.yml` (todas via variáveis do stack), nginx em imagem própria (`Dockerfile.web`), migrations só no serviço `app`, `LOG_LEVEL=warning` em produção, middlewares/routers do Traefik com prefixo `lara-` para não colidir com a stack da farmácia no mesmo Swarm.
+
+## ADR-005 — Estoque baixa na confirmação do pagamento
+
+- **Decisão:** o estoque da variante só é baixado quando o Asaas confirma o pagamento, via `ProductVariant::decrementStock()` — um único `UPDATE ... WHERE stock >= qtd`, atômico.
+- **Consequência aceita:** dois clientes podem pagar pelo último item. A baixa atômica garante que o estoque nunca fica negativo (só uma confirmação vence); o pedido perdedor deve ser sinalizado para a loja resolver (estorno ou troca). O checkout bloqueia variantes com estoque zerado para reduzir esse caso.
+- **Descartado:** reserva de estoque na criação do pedido com expiração (mais segura contra overselling, porém mais complexa).
+
+## ADR-006 — Login obrigatório para comprar
+
+- **Decisão:** checkout exige conta (cadastro rápido + login Google no módulo de auth). O Asaas exige CPF e a conta habilita recuperação de carrinho e contato via WhatsApp.
+- **Segurança:** `users.role` não é mass-assignable; promoção a admin só via `php artisan user:make-admin {email}`.
+
+## ADR-007 — Entrega própria só em Itapuã do Oeste + retirada na loja
+
+- **Decisão:** duas modalidades: entrega (somente Itapuã do Oeste/RO, taxa por bairro em `shipping_zones`, com frete grátis opcional acima de um valor) e retirada na loja (sem taxa). Sem Correios/transportadora no MVP.
+- **Taxas reais** são cadastradas pela loja no admin; o seed de produção não cria zonas.

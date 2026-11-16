@@ -3,23 +3,29 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
-     * Seed the application's database.
+     * Sem WithoutModelEvents: os models dependem do evento "saving" para gerar slug.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(CatalogBaseSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (! app()->environment('local')) {
+            return;
+        }
+
+        $this->call(DemoCatalogSeeder::class);
+
+        // Admin de desenvolvimento (senha "password"). Só existe em ambiente local.
+        if (! User::where('email', 'admin@lara.test')->exists()) {
+            User::factory()->admin()->create([
+                'name' => 'Admin Local',
+                'email' => 'admin@lara.test',
+            ]);
+        }
     }
 }
