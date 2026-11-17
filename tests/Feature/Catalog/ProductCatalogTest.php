@@ -10,6 +10,7 @@ use App\Models\ProductVariant;
 use App\Models\ShippingZone;
 use Database\Seeders\CatalogBaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ProductCatalogTest extends TestCase
@@ -68,7 +69,7 @@ class ProductCatalogTest extends TestCase
         $products = Product::with('activeVariants')->get();
 
         $queries = 0;
-        \DB::listen(function () use (&$queries) {
+        DB::listen(function () use (&$queries) {
             $queries++;
         });
 

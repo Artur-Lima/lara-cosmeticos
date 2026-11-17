@@ -26,6 +26,23 @@ docker compose --profile front run --rm node sh -c "npm install && npm run build
 
 Acesse http://localhost:8000. Para hot reload do front: `docker compose --profile front up node`.
 
+Popular o banco local (marcas, categorias, produtos de demonstração e admin de teste):
+
+```bash
+docker compose exec app php artisan migrate:fresh --seed
+```
+
+Admin local: `admin@lara.test` / `password` → http://localhost:8000/admin
+
+## Administradores
+
+O papel de admin nunca vem de formulário. Para promover alguém (o usuário precisa se cadastrar no site antes):
+
+```bash
+php artisan user:make-admin lara@exemplo.com          # promove
+php artisan user:make-admin lara@exemplo.com --revoke # volta a cliente
+```
+
 MySQL do container fica exposto em `localhost:3307` (usuário/senha do `.env`).
 
 ## Rodando sem Docker
