@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\ProductStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\ShippingZone;
@@ -36,6 +37,9 @@ class DashboardController extends Controller
             'drafts' => (int) ($statusCounts[ProductStatus::Draft->value] ?? 0),
             'lowStock' => $lowStock,
             'hasShippingZones' => ShippingZone::where('is_active', true)->exists(),
+            'toHandle' => Order::toHandle()->count(),
+            'attention' => Order::needsAttention()->latest()->limit(10)->get(),
+            'paidToday' => Order::whereDate('paid_at', today())->whereNot('status', 'cancelado')->sum('total'),
         ]);
     }
 }

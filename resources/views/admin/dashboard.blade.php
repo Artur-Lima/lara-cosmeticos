@@ -6,6 +6,28 @@
         </div>
     @endunless
 
+    @if ($attention->isNotEmpty())
+        <div class="mb-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+            <p class="font-semibold">Pedidos que precisam de atenção</p>
+            <ul class="mt-2 space-y-1">
+                @foreach ($attention as $o)
+                    <li><a href="{{ route('admin.orders.show', $o) }}" class="font-medium underline">{{ $o->code }}</a> — {{ $o->attention_reason }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="mb-4 grid gap-4 sm:grid-cols-2">
+        <a href="{{ route('admin.orders.index') }}" class="rounded-lg bg-white border border-stone-200 p-5 hover:border-brand-300">
+            <p class="text-sm text-stone-500">Pedidos para separar ou entregar</p>
+            <p @class(['mt-1 text-3xl font-semibold', 'text-brand-700' => $toHandle > 0])>{{ $toHandle }}</p>
+        </a>
+        <div class="rounded-lg bg-white border border-stone-200 p-5">
+            <p class="text-sm text-stone-500">Vendido hoje</p>
+            <p class="mt-1 text-3xl font-semibold">{{ \App\Support\Money::brl($paidToday) }}</p>
+        </div>
+    </div>
+
     <div class="grid gap-4 sm:grid-cols-3">
         <a href="{{ route('admin.products.index', ['status' => 'active']) }}" class="rounded-lg bg-white border border-stone-200 p-5 hover:border-brand-300">
             <p class="text-sm text-stone-500">Produtos publicados</p>

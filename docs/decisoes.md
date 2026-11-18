@@ -37,3 +37,11 @@ Registro curto das decisões técnicas (o quê, por quê, alternativa descartada
 
 - **Decisão:** duas modalidades: entrega (somente Itapuã do Oeste/RO, taxa por bairro em `shipping_zones`, com frete grátis opcional acima de um valor) e retirada na loja (sem taxa). Sem Correios/transportadora no MVP.
 - **Taxas reais** são cadastradas pela loja no admin; o seed de produção não cria zonas.
+
+## ADR-008 — Pagamento pelo Asaas: PIX na loja, cartão na página do Asaas
+
+- **PIX:** cobrança criada via API e QR Code/copia e cola exibidos na página do pedido, que consulta o status a cada 5 s.
+- **Cartão:** o cliente é redirecionado para a fatura (`invoiceUrl`) do Asaas. O número do cartão nunca passa pelo servidor da loja, então a loja fica fora do escopo de PCI. Parcelamento fica para depois.
+- **Webhook** (`POST /api/asaas/webhook`): valida `asaas-access-token` com `hash_equals` (fechado se o token não estiver configurado), grava o evento com `event_id` único (reentregas ignoradas) e processa na fila. Antes de marcar como pago, consulta a cobrança na API do Asaas e confere status e valor.
+- **Casos de borda tratados:** CONFIRMED e RECEIVED do mesmo pagamento (baixa uma vez só, com lock), item sem estoque na hora do pagamento (pedido pago e marcado "precisa de atenção"), pagamento depois do cancelamento (alerta), estorno (cancela, devolve só o estoque que saiu e alerta), preço alterado durante o checkout (cliente revisa antes de pagar).
+- **Estorno do dinheiro** é manual no painel do Asaas; o sistema devolve o estoque e avisa.

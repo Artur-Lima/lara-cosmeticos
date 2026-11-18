@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Store;
+use App\Http\Controllers\Webhooks\AsaasWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // Vitrine (pública)
@@ -20,7 +21,17 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::delete('/sacola/{variant}', [Store\CartController::class, 'destroy'])->whereNumber('variant')->name('cart.destroy');
 });
 
+// Webhook do Asaas (sem CSRF; autenticado pelo header asaas-access-token)
+Route::post('/api/asaas/webhook', AsaasWebhookController::class)->name('webhooks.asaas');
+
 Route::middleware('auth')->group(function () {
+    Route::get('/finalizar', [Store\CheckoutController::class, 'show'])->name('checkout.show');
+    Route::post('/finalizar', [Store\CheckoutController::class, 'store'])->middleware('throttle:10,1')->name('checkout.store');
+
+    Route::get('/minha-conta/pedidos', [Store\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/pedidos/{order}', [Store\OrderController::class, 'show'])->name('orders.show');
+    Route::get('/pedidos/{order}/status', [Store\OrderController::class, 'status'])->middleware('throttle:30,1')->name('orders.status');
+
     // Admin cai direto no painel; cliente vê "Minha conta" (pedidos entram no Sprint 3).
     Route::get('/minha-conta', function () {
         return auth()->user()->isAdmin()
@@ -53,6 +64,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         ->parameters(['categorias' => 'category'])
         ->names('categories')
         ->except('show');
+
+    Route::get('pedidos', [Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::get('pedidos/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
+    Route::patch('pedidos/{order}/status', [Admin\OrderController::class, 'updateStatus'])->name('orders.status');
+    Route::patch('pedidos/{order}/resolver', [Admin\OrderController::class, 'resolveAttention'])->name('orders.resolve');
 
     Route::resource('entrega', Admin\ShippingZoneController::class)
         ->parameters(['entrega' => 'shippingZone'])

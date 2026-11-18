@@ -68,9 +68,10 @@
                             <dd class="text-right">Calculada no próximo passo. Retirada na loja é grátis.</dd>
                         </div>
                     </dl>
-                    {{-- Checkout com Asaas entra no Sprint 3 --}}
-                    <button type="button" disabled class="mt-6 w-full cursor-not-allowed rounded-full bg-brand-600/60 px-6 py-3 font-medium text-white">Finalizar compra</button>
-                    <p class="mt-2 text-center text-xs text-brand-700">Pagamento online em breve.</p>
+                    <a href="{{ route('checkout.show') }}" class="mt-6 block w-full rounded-full bg-brand-600 px-6 py-3 text-center font-medium text-white hover:bg-brand-700">Finalizar compra</a>
+                    @guest
+                        <p class="mt-2 text-center text-xs text-brand-700">Você entra ou cria sua conta no próximo passo.</p>
+                    @endguest
                     <a href="{{ route('catalog') }}" class="mt-4 block text-center text-sm underline-offset-4 hover:underline">Continuar comprando</a>
                 </aside>
             </div>

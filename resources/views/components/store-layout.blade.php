@@ -52,7 +52,7 @@
 
             <nav class="ml-auto flex items-center gap-1 sm:gap-3 text-sm">
                 @auth
-                    <a href="{{ route('dashboard') }}" class="rounded-full px-3 py-2 hover:bg-quartz">{{ auth()->user()->isAdmin() ? 'Painel' : 'Minha conta' }}</a>
+                    <a href="{{ route('dashboard') }}" class="whitespace-nowrap rounded-full px-3 py-2 hover:bg-quartz">@if (auth()->user()->isAdmin()) Painel @else <span class="sm:hidden">Conta</span><span class="hidden sm:inline">Minha conta</span> @endif</a>
                 @else
                     <a href="{{ route('login') }}" class="rounded-full px-3 py-2 hover:bg-quartz">Entrar</a>
                 @endauth

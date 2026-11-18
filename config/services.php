@@ -2,6 +2,19 @@
 
 return [
 
+    'asaas' => [
+        'key' => env('ASAAS_API_KEY'),
+        'env' => env('ASAAS_ENV', 'sandbox'), // sandbox | production
+        'webhook_token' => env('ASAAS_WEBHOOK_TOKEN'),
+    ],
+
+    // Conector de WhatsApp (n8n + Evolution API): recebe eventos da loja e envia as mensagens.
+    'whatsapp' => [
+        'enabled' => (bool) env('WHATSAPP_ENABLED', false),
+        'connector_url' => env('WHATSAPP_CONNECTOR_URL'),
+        'connector_token' => env('WHATSAPP_CONNECTOR_TOKEN'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

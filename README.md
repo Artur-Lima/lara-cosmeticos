@@ -34,6 +34,27 @@ docker compose exec app php artisan migrate:fresh --seed
 
 Admin local: `admin@lara.test` / `password` → http://localhost:8000/admin
 
+## Pagamentos (Asaas)
+
+1. Crie a conta em https://sandbox.asaas.com (testes) e cadastre uma **chave PIX** na conta (sem ela o PIX não é gerado).
+2. Em *Integrações*, gere a chave de API e configure no `.env`:
+   ```
+   ASAAS_API_KEY=$aact_hmlg_...   # produção começa com $aact_prod_
+   ASAAS_ENV=sandbox              # production na conta real
+   ASAAS_WEBHOOK_TOKEN=           # 32+ caracteres aleatórios
+   ```
+3. Em *Integrações → Webhooks*, crie um webhook:
+   - URL: `https://SEU_DOMINIO/api/asaas/webhook`
+   - Token de autenticação: o mesmo valor de `ASAAS_WEBHOOK_TOKEN`
+   - Eventos: `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED`, `PAYMENT_OVERDUE`, `PAYMENT_DELETED`, `PAYMENT_REFUNDED`
+4. A fila (`queue`) e o agendador (`scheduler`) precisam estar rodando: o webhook é processado na fila e pedidos sem pagamento são cancelados após 48 h.
+
+Em ambiente local o Asaas não alcança `localhost`; para testar o webhook use um túnel (ex.: `cloudflared tunnel --url http://localhost:8000`).
+
+## Aviso de pedido no WhatsApp
+
+Com `WHATSAPP_ENABLED=true`, cada pedido pago envia um `POST` JSON (`event: order.paid`) para `WHATSAPP_CONNECTOR_URL` com `Authorization: Bearer WHATSAPP_CONNECTOR_TOKEN`. O fluxo no n8n formata e envia a mensagem pela Evolution API para a loja (`SHOP_WHATSAPP`) e para a cliente.
+
 ## Administradores
 
 O papel de admin nunca vem de formulário. Para promover alguém (o usuário precisa se cadastrar no site antes):

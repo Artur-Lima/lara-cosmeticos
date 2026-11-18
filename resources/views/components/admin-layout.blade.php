@@ -16,6 +16,7 @@
 @php
     $menu = [
         ['admin.dashboard', 'admin.dashboard', 'Painel'],
+        ['admin.orders.index', 'admin.orders.*', 'Pedidos'],
         ['admin.products.index', 'admin.products.*', 'Produtos'],
         ['admin.brands.index', 'admin.brands.*', 'Marcas'],
         ['admin.categories.index', 'admin.categories.*', 'Categorias'],
