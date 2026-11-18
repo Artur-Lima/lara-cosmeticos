@@ -9,13 +9,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Category extends Model
 {
     /** @use HasFactory<CategoryFactory> */
     use HasFactory, HasSlug;
 
+    public const MENU_CACHE_KEY = 'store.menu';
+
     protected $fillable = ['parent_id', 'name', 'slug', 'description', 'position', 'is_active'];
+
+    protected static function booted(): void
+    {
+        $forget = fn () => Cache::forget(self::MENU_CACHE_KEY);
+        static::saved($forget);
+        static::deleted($forget);
+    }
 
     protected function casts(): array
     {

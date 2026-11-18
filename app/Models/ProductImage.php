@@ -14,7 +14,15 @@ class ProductImage extends Model
     /** @use HasFactory<ProductImageFactory> */
     use HasFactory;
 
-    protected $fillable = ['product_id', 'product_variant_id', 'path', 'alt', 'position'];
+    protected $fillable = ['product_id', 'product_variant_id', 'path', 'thumb_path', 'alt', 'position'];
+
+    protected static function booted(): void
+    {
+        // Apagar o registro apaga também os arquivos (principal e miniatura).
+        static::deleted(function (ProductImage $image) {
+            Storage::disk('public')->delete(array_filter([$image->path, $image->thumb_path]));
+        });
+    }
 
     protected function casts(): array
     {
@@ -34,5 +42,10 @@ class ProductImage extends Model
     protected function url(): Attribute
     {
         return Attribute::get(fn () => Storage::disk('public')->url($this->path));
+    }
+
+    protected function thumbUrl(): Attribute
+    {
+        return Attribute::get(fn () => Storage::disk('public')->url($this->thumb_path ?? $this->path));
     }
 }

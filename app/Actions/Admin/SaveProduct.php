@@ -3,6 +3,7 @@
 namespace App\Actions\Admin;
 
 use App\Models\Product;
+use App\Support\ImageOptimizer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\Storage;
  */
 class SaveProduct
 {
+    public function __construct(private readonly ImageOptimizer $images) {}
+
     private const PRODUCT_FIELDS = [
         'name', 'slug', 'brand_id', 'category_id', 'short_description', 'description',
         'how_to_use', 'composition', 'gender', 'status', 'is_featured', 'seo_title', 'seo_description',
@@ -42,11 +45,10 @@ class SaveProduct
                 $position = (int) $product->images()->max('position');
 
                 foreach ($images as $file) {
-                    $path = $file->store("products/{$product->id}", 'public');
-                    $stored[] = $path;
+                    $files = $this->images->storeProductImage($file, "products/{$product->id}");
+                    array_push($stored, $files['path'], $files['thumb_path']);
 
-                    $product->images()->create([
-                        'path' => $path,
+                    $product->images()->create($files + [
                         'alt' => $product->name,
                         'position' => ++$position,
                     ]);

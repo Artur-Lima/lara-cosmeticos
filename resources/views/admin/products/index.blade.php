@@ -49,7 +49,7 @@
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
                             @if ($img = $product->images->first())
-                                <img src="{{ $img->url }}" alt="" class="h-12 w-12 rounded object-cover bg-stone-100" loading="lazy">
+                                <img src="{{ $img->thumb_url }}" alt="" class="h-12 w-12 rounded object-cover bg-stone-100" loading="lazy">
                             @else
                                 <div class="h-12 w-12 rounded bg-stone-100 grid place-items-center text-[10px] text-stone-400">sem foto</div>
                             @endif

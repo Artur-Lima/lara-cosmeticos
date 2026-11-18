@@ -180,7 +180,7 @@
                 <div class="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-3">
                     @foreach ($product->images as $image)
                         <div class="relative group">
-                            <img src="{{ $image->url }}" alt="{{ $image->alt }}" class="aspect-square w-full rounded object-cover bg-stone-100">
+                            <img src="{{ $image->thumb_url }}" alt="{{ $image->alt }}" class="aspect-square w-full rounded object-cover bg-stone-100">
                             @if ($loop->first)<span class="absolute left-1 top-1 rounded bg-white/90 px-1.5 text-[10px] font-medium">capa</span>@endif
                             <button type="submit" form="delete-image-{{ $image->id }}"
                                     class="absolute right-1 top-1 rounded bg-white/90 px-1.5 text-xs text-red-600 opacity-100 sm:opacity-0 group-hover:opacity-100">remover</button>

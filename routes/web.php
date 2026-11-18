@@ -2,9 +2,23 @@
 
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Store;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+// Vitrine (pública)
+Route::get('/', Store\HomeController::class)->name('home');
+Route::get('/produtos', [Store\CatalogController::class, 'index'])->name('catalog');
+Route::get('/categoria/{category:slug}', [Store\CatalogController::class, 'category'])->name('catalog.category');
+Route::get('/marca/{brand:slug}', [Store\CatalogController::class, 'brand'])->name('catalog.brand');
+Route::get('/produto/{product:slug}', [Store\ProductController::class, 'show'])->name('product.show');
+
+// Sacola (sessão; login só será exigido no checkout)
+Route::get('/sacola', [Store\CartController::class, 'index'])->name('cart.index');
+Route::middleware('throttle:60,1')->group(function () {
+    Route::post('/sacola', [Store\CartController::class, 'store'])->name('cart.store');
+    Route::patch('/sacola/{variant}', [Store\CartController::class, 'update'])->name('cart.update');
+    Route::delete('/sacola/{variant}', [Store\CartController::class, 'destroy'])->whereNumber('variant')->name('cart.destroy');
+});
 
 Route::middleware('auth')->group(function () {
     // Admin cai direto no painel; cliente vê "Minha conta" (pedidos entram no Sprint 3).

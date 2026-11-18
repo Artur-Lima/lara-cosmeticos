@@ -12,7 +12,6 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -89,8 +88,7 @@ class ProductController extends Controller
 
     public function destroyImage(Product $product, ProductImage $image): RedirectResponse
     {
-        Storage::disk('public')->delete($image->path);
-        $image->delete();
+        $image->delete(); // o model apaga os arquivos (principal e miniatura)
 
         return back()->with('success', 'Foto removida.');
     }
