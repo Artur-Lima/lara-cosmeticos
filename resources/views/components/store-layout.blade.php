@@ -22,6 +22,7 @@
     <meta property="og:description" content="{{ $description }}">
     @if ($image)<meta property="og:image" content="{{ $image }}">@endif
     <meta name="theme-color" content="#2e1a2b">
+    @if (config('shop.demo'))<meta name="robots" content="noindex, nofollow">@endif
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=cormorant-garamond:500,600|instrument-sans:400,500,600&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -30,9 +31,15 @@
 <body class="min-h-screen flex flex-col bg-mist font-sans text-ink antialiased" x-data="{ drawer: false }">
     <a href="#conteudo" class="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">Pular para o conteúdo</a>
 
-    <p class="bg-ink px-4 py-2 text-center text-xs text-brand-100">
-        Entrega no mesmo dia em {{ \App\Models\ShippingZone::CITY }} ou retirada grátis na loja
-    </p>
+    @if (config('shop.demo'))
+        <p class="bg-amber-300 px-4 py-2 text-center text-xs font-medium text-ink">
+            Loja em demonstração: os pedidos feitos aqui são de teste e não serão entregues.
+        </p>
+    @else
+        <p class="bg-ink px-4 py-2 text-center text-xs text-brand-100">
+            Entrega no mesmo dia em {{ \App\Models\ShippingZone::CITY }} ou retirada grátis na loja
+        </p>
+    @endif
 
     <header class="sticky top-0 z-30 border-b border-brand-100 bg-mist/95 backdrop-blur">
         <div class="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-6 sm:px-6">

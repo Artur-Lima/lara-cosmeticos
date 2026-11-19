@@ -6,6 +6,13 @@ use App\Http\Controllers\Store;
 use App\Http\Controllers\Webhooks\AsaasWebhookController;
 use Illuminate\Support\Facades\Route;
 
+// Em demonstração o site inteiro fica fora dos buscadores.
+Route::get('/robots.txt', fn () => response(
+    config('shop.demo') ? "User-agent: *\nDisallow: /\n" : "User-agent: *\nDisallow: /admin\nDisallow: /minha-conta\nDisallow: /finalizar\nDisallow: /sacola\n",
+    200,
+    ['Content-Type' => 'text/plain; charset=UTF-8'],
+))->name('robots');
+
 // Vitrine (pública)
 Route::get('/', Store\HomeController::class)->name('home');
 Route::get('/produtos', [Store\CatalogController::class, 'index'])->name('catalog');

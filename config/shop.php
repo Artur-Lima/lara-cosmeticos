@@ -6,6 +6,9 @@
 return [
     'name' => env('APP_NAME', 'Lara Lima Cosméticos'),
 
+    // Demonstração: faixa de aviso no topo e site fora do Google (noindex + robots).
+    'demo' => (bool) env('SHOP_DEMO', false),
+
     // Só dígitos, com DDI e DDD: 5569999999999
     'whatsapp' => env('SHOP_WHATSAPP'),
 

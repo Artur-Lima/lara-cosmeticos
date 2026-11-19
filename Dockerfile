@@ -1,6 +1,12 @@
 # syntax=docker/dockerfile:1
 
-# ── Estágio 1: assets (Tailwind + Alpine via Vite) ──────────────────────────
+# ── Estágio 1: dependências PHP (cache de camada separado do código) ────────
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --prefer-dist --ignore-platform-reqs
+
+# ── Estágio 2: assets (Tailwind + Alpine via Vite) ──────────────────────────
 # O Tailwind escaneia resources/views para gerar só as classes usadas; sem o
 # manifest gerado aqui, @vite() quebra todas as páginas em produção.
 FROM node:20-alpine AS assets
@@ -9,13 +15,9 @@ COPY package.json package-lock.json* ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY vite.config.js tailwind.config.js postcss.config.js ./
 COPY resources ./resources
+# O Tailwind também lê as views de paginação do Laravel (tailwind.config.js).
+COPY --from=vendor /app/vendor/laravel/framework/src/Illuminate/Pagination/resources/views ./vendor/laravel/framework/src/Illuminate/Pagination/resources/views
 RUN npm run build
-
-# ── Estágio 2: dependências PHP (cache de camada separado do código) ────────
-FROM composer:2 AS vendor
-WORKDIR /app
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --prefer-dist --ignore-platform-reqs
 
 # ── Estágio 3: runtime PHP-FPM ──────────────────────────────────────────────
 FROM php:8.4-fpm
